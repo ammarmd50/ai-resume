@@ -2,14 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Application } from '../models/types';
+import { serverConfig } from '../config/server.config';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ApplicationService {
   private http = inject(HttpClient);
-  
-  private apiUrl = 'http://localhost:5000/api/applications';
+
+  private apiUrl = `${serverConfig.url}/applications`;
 
   apply(jobId: string, coverLetter?: string): Observable<any> {
     return this.http.post<any>(this.apiUrl, { jobId, coverLetter });
