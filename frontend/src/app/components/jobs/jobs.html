@@ -1,0 +1,302 @@
+<div class="jobs-wrapper">
+  <!-- 1. HEADER SECTION -->
+  <div class="jobs-header">
+    <div>
+      <h1>{{ authService.isRecruiter() ? 'Manage Job Postings' : 'Explore Opportunities' }}</h1>
+      <p class="subtitle">
+        {{ authService.isRecruiter() ? 'Create, modify, or delete your active job listings.' : 'Find your perfect career fit with AI-guided compatibility matches.' }}
+      </p>
+    </div>
+    @if (authService.isRecruiter()) {
+      <button (click)="openCreateModal()" class="btn-primary">
+        <span class="material-icons-outlined">add</span>
+        <span>Post a New Job</span>
+      </button>
+    }
+  </div>
+
+  <!-- 2. FILTERING BOARD (CANDIDATE ONLY) -->
+  @if (authService.isCandidate()) {
+    <div class="mat-mdc-card filter-board">
+      <div class="filter-inputs-row">
+        <!-- Search -->
+        <div class="custom-input-group flex-2">
+          <label for="search">Keywords search</label>
+          <input type="text" id="search" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" placeholder="Title, company, skills..." />
+        </div>
+        
+        <!-- Location -->
+        <div class="custom-input-group flex-1">
+          <label for="location">Location</label>
+          <input type="text" id="location" [value]="locationFilter()" (input)="locationFilter.set($any($event.target).value)" placeholder="e.g. remote, San Francisco" />
+        </div>
+
+        <!-- Mode -->
+        <div class="custom-input-group flex-1">
+          <label for="mode">Work Mode</label>
+          <select id="mode" [value]="modeFilter()" (change)="modeFilter.set($any($event.target).value)">
+            <option value="">All modes</option>
+            <option value="Remote">Remote</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="Onsite">Onsite</option>
+          </select>
+        </div>
+
+        <!-- Type -->
+        <div class="custom-input-group flex-1">
+          <label for="type">Job Type</label>
+          <select id="type" [value]="typeFilter()" (change)="typeFilter.set($any($event.target).value)">
+            <option value="">All types</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+          </select>
+        </div>
+
+        <!-- Sort -->
+        <div class="custom-input-group flex-1">
+          <label for="sort">Sort By</label>
+          <select id="sort" [value]="sortBy()" (change)="sortBy.set($any($event.target).value)">
+            <option value="newest">Newest First</option>
+            <option value="match">AI Match %</option>
+            <option value="salary">Salary Range</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-actions-row">
+        <button (click)="applyFilters()" class="btn-primary">
+          <span class="material-icons-outlined">search</span>
+          <span>Search Roles</span>
+        </button>
+        <button (click)="resetFilters()" class="btn-secondary">
+          <span>Reset Filters</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- 3. JOB CARDS GRID LISTING -->
+  @if (isLoading()) {
+    <div class="dashboard-grid">
+      <div class="mat-mdc-card" style="padding: 24px; height: 180px;" *ngFor="let x of [1,2,3]">
+        <div class="skeleton-loading title"></div>
+        <div class="skeleton-loading text"></div>
+        <div class="skeleton-loading text" style="width: 50%;"></div>
+      </div>
+    </div>
+  } @else {
+    @if (jobs().length === 0) {
+      <div class="mat-mdc-card empty-state-panel">
+        <span class="material-icons-outlined empty-icon">work_off</span>
+        <h2>No job listings found</h2>
+        <p>Try broadening your filter criteria or check back later for new postings.</p>
+      </div>
+    } @else {
+      <div class="jobs-grid">
+        <div class="mat-mdc-card job-card" *ngFor="let job of jobs()">
+          
+          <!-- Card top row -->
+          <div class="job-card-top">
+            <div class="job-meta">
+              <span class="company">{{ job.company }}</span>
+              <h2 class="title">{{ job.title }}</h2>
+              <div class="badges-row">
+                <span class="badge type">{{ job.employmentType }}</span>
+                <span class="badge mode">{{ job.workMode }}</span>
+                @if (job.salary) {
+                  <span class="badge salary"><span class="material-icons-outlined">monetization_on</span> {{ job.salary }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- AI Match Percentage Badge (Candidate view only) -->
+            @if (authService.isCandidate() && job.matchPercentage !== undefined) {
+              <div class="match-score-badge" 
+                   [class.high]="job.matchPercentage >= 85"
+                   [class.medium]="job.matchPercentage >= 70 && job.matchPercentage < 85"
+                   [class.low]="job.matchPercentage < 70">
+                <span class="score">{{ job.matchPercentage }}%</span>
+                <span class="lbl">Match</span>
+              </div>
+            }
+          </div>
+
+          <!-- Description snippet -->
+          <p class="description">{{ job.description | slice:0:160 }}...</p>
+
+          <!-- Skills required chips -->
+          <div class="skills-row">
+            <span class="skill-chip" *ngFor="let skill of job.skills">{{ skill }}</span>
+          </div>
+
+          <!-- AI Rationale details section (Candidates only) -->
+          @if (authService.isCandidate() && job.matchPercentage !== undefined) {
+            <div class="ai-rationale-box">
+              <div class="rationale-header">
+                <span class="material-icons-outlined primary-text">auto_awesome</span>
+                <span>AI Matching Explanation</span>
+              </div>
+              <p class="rationale-text">{{ job.matchExplanation }}</p>
+              
+              <!-- Missing skills warning inside card -->
+              @if (job.missingSkills && job.missingSkills.length > 0) {
+                <div class="missing-skills-section">
+                  <span class="lbl">Missing Keywords:</span>
+                  <div class="small-chips">
+                    <span class="s-chip" *ngFor="let ms of job.missingSkills">{{ ms }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Footer Actions -->
+          <div class="job-card-footer">
+            <div class="footer-meta">
+              <span class="material-icons-outlined">location_on</span>
+              <span>{{ job.location }}</span>
+            </div>
+            
+            <div class="footer-actions">
+              <!-- Candidate apply -->
+              @if (authService.isCandidate()) {
+                <button (click)="openApplyModal(job)" class="btn-primary btn-sm">
+                  <span class="material-icons-outlined">send</span>
+                  <span>Apply Now</span>
+                </button>
+              }
+              <!-- Recruiter CRUD -->
+              @if (authService.isRecruiter()) {
+                <button (click)="openEditModal(job)" class="btn-secondary btn-sm">
+                  <span class="material-icons-outlined">edit</span>
+                </button>
+                <button (click)="onDeleteJob(job._id!)" class="btn-secondary btn-sm delete-btn">
+                  <span class="material-icons-outlined">delete</span>
+                </button>
+              }
+            </div>
+          </div>
+
+        </div>
+      </div>
+    }
+  }
+
+  <!-- ==================== MODALS / OVERLAYS ==================== -->
+
+  <!-- A. RECRUITER POST/EDIT JOB MODAL -->
+  @if (isFormOpen()) {
+    <div class="modal-backdrop" (click)="closeFormModal()">
+      <div class="modal-card mat-mdc-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditing() ? 'Modify Job Posting' : 'Post a New Job Opportunity' }}</h2>
+          <button (click)="closeFormModal()" class="close-btn"><span class="material-icons-outlined">close</span></button>
+        </div>
+
+        <form [formGroup]="jobForm" (ngSubmit)="onSubmitJob()" class="modal-form">
+          <div class="form-row">
+            <div class="custom-input-group flex-1">
+              <label for="j-title">Job Title *</label>
+              <input type="text" id="j-title" formControlName="title" placeholder="e.g. Senior Angular Developer" />
+            </div>
+            <div class="custom-input-group flex-1">
+              <label for="j-company">Company *</label>
+              <input type="text" id="j-company" formControlName="company" placeholder="e.g. Google" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="custom-input-group flex-1">
+              <label for="j-location">Location *</label>
+              <input type="text" id="j-location" formControlName="location" placeholder="e.g. Austin, TX or Remote" />
+            </div>
+            <div class="custom-input-group flex-1">
+              <label for="j-skills">Skills Required (comma separated) *</label>
+              <input type="text" id="j-skills" formControlName="skills" placeholder="Angular, TypeScript, SCSS" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="custom-input-group flex-1">
+              <label for="j-salary">Salary Estimate</label>
+              <input type="text" id="j-salary" formControlName="salary" placeholder="e.g. $120,000 - $140,000" />
+            </div>
+            <div class="custom-input-group flex-1">
+              <label for="j-exp">Experience Requirements</label>
+              <input type="text" id="j-exp" formControlName="experience" placeholder="e.g. 3+ years" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="custom-input-group flex-1">
+              <label for="j-type">Employment Type *</label>
+              <select id="j-type" formControlName="employmentType">
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+              </select>
+            </div>
+            <div class="custom-input-group flex-1">
+              <label for="j-mode">Work Mode *</label>
+              <select id="j-mode" formControlName="workMode">
+                <option value="Onsite">Onsite</option>
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="custom-input-group">
+            <label for="j-desc">Job Description *</label>
+            <textarea id="j-desc" formControlName="description" rows="5" placeholder="Outline job responsibilities, candidate expectations..."></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" (click)="closeFormModal()" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="jobForm.invalid">
+              <span>{{ isEditing() ? 'Save Changes' : 'Post Job' }}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- B. CANDIDATE APPLICATION COVER LETTER MODAL -->
+  @if (isApplyOpen()) {
+    <div class="modal-backdrop" (click)="closeApplyModal()">
+      <div class="modal-card mat-mdc-card apply-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Apply for "{{ applyJobTitle() }}"</h2>
+          <button (click)="closeApplyModal()" class="close-btn"><span class="material-icons-outlined">close</span></button>
+        </div>
+
+        <div class="modal-body" style="padding-top: 10px;">
+          <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 20px;">
+            Your parsed resume profile will automatically be attached to this application. Customize your cover letter draft statement below.
+          </p>
+
+          <div class="custom-input-group">
+            <label for="apply-cover">Custom Cover Letter Draft</label>
+            <textarea id="apply-cover" 
+                      [value]="coverLetterInput()" 
+                      (input)="coverLetterInput.set($any($event.target).value)" 
+                      rows="8" 
+                      placeholder="Write cover letter or customize generated template here..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" (click)="closeApplyModal()" class="btn-secondary">Cancel</button>
+          <button type="button" (click)="onSubmitApplication()" class="btn-primary">
+            <span class="material-icons-outlined">send</span>
+            <span>Submit Application</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

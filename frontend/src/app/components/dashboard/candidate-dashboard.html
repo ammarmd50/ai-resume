@@ -1,0 +1,169 @@
+<div class="dashboard-wrapper">
+  <!-- Loading skeleton -->
+  @if (isLoading()) {
+    <div class="welcome-header-skeleton">
+      <div class="skeleton-loading title"></div>
+      <div class="skeleton-loading text" style="width: 40%;"></div>
+    </div>
+    
+    <div class="dashboard-grid">
+      <div class="mat-mdc-card" style="padding: 24px; height: 120px;" *ngFor="let x of [1,2,3,4]">
+        <div class="skeleton-loading short" style="margin-bottom: 16px;"></div>
+        <div class="skeleton-loading title" style="width: 80%;"></div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="mat-mdc-card chart-card" style="padding: 24px; height: 350px;">
+        <div class="skeleton-loading title"></div>
+        <div class="skeleton-loading text" *ngFor="let y of [1,2,3,4,5]"></div>
+      </div>
+      <div class="mat-mdc-card chart-card" style="padding: 24px; height: 350px;">
+        <div class="skeleton-loading title"></div>
+        <div class="skeleton-loading text" *ngFor="let y of [1,2,3,4,5]"></div>
+      </div>
+    </div>
+  } @else {
+    <!-- Main Dashboard View -->
+    <div class="welcome-header">
+      <h1>Hello, {{ authService.currentUser()?.name }}!</h1>
+      <p class="subtitle">Here is what is happening with your job search progress today.</p>
+    </div>
+
+    <!-- Upload CTA Banner if no resume exists -->
+    @if (!resume()) {
+      <div class="mat-mdc-card upload-cta-card">
+        <div class="cta-content">
+          <span class="material-icons-outlined cta-icon text-glow">rocket_launch</span>
+          <div class="cta-text">
+            <h2>Optimize your CV for ATS Systems</h2>
+            <p>Upload your resume in PDF or Word format to analyze details, scan keywords, and access custom cover letters.</p>
+          </div>
+        </div>
+        <button routerLink="/candidate/resume" class="btn-primary">
+          <span class="material-icons-outlined">cloud_upload</span>
+          <span>Upload Resume</span>
+        </button>
+      </div>
+    }
+
+    <!-- Stat cards -->
+    <div class="dashboard-grid">
+      <!-- ATS Score Card -->
+      <div class="mat-mdc-card stat-card glow-primary">
+        <div class="stat-header">
+          <span>ATS Score</span>
+          <span class="material-icons-outlined icon primary-text">auto_awesome</span>
+        </div>
+        <div class="ats-gauge-container">
+          <svg viewBox="0 0 36 36" class="circular-chart">
+            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path class="circle" [attr.stroke-dasharray]="atsScore() + ', 100'" stroke="url(#primary-grad)" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <defs>
+              <linearGradient id="primary-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--primary)" />
+                <stop offset="100%" stop-color="var(--accent)" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="percentage">{{ atsScore() }}%</div>
+        </div>
+      </div>
+
+      <!-- Total Applications Card -->
+      <div class="mat-mdc-card stat-card">
+        <div class="stat-header">
+          <span>Total Applications</span>
+          <span class="material-icons-outlined icon accent-text">send</span>
+        </div>
+        <div class="stat-body">
+          <h2 class="counter">{{ totalApps() }}</h2>
+          <span class="trend positive"><span class="material-icons-outlined">trending_up</span> Active tracking</span>
+        </div>
+      </div>
+
+      <!-- Saved Jobs -->
+      <div class="mat-mdc-card stat-card">
+        <div class="stat-header">
+          <span>Saved Jobs</span>
+          <span class="material-icons-outlined icon warning-text">bookmark_border</span>
+        </div>
+        <div class="stat-body">
+          <h2 class="counter">{{ savedJobsCount() }}</h2>
+          <span class="trend"><span class="material-icons-outlined">link</span> In job list</span>
+        </div>
+      </div>
+
+      <!-- Interview Calls -->
+      <div class="mat-mdc-card stat-card">
+        <div class="stat-header">
+          <span>Interviews Scheduled</span>
+          <span class="material-icons-outlined icon success-text">event_available</span>
+        </div>
+        <div class="stat-body">
+          <h2 class="counter">{{ interviewCalls() }}</h2>
+          <span class="trend" [class.highlight]="interviewCalls() > 0">
+            <span class="material-icons-outlined">notifications_active</span> Keep preparing!
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    @if (resume()) {
+      <div class="charts-row">
+        <!-- Key Skills Rating Chart -->
+        <div class="mat-mdc-card chart-card flex-1">
+          <div class="chart-header">
+            <h3>Top Skills Breakdown</h3>
+            <p>Score estimates based on resume experiences mapping</p>
+          </div>
+          <div class="skills-bar-chart">
+            <div class="bar-item" *ngFor="let item of skillsChartData()">
+              <div class="bar-labels">
+                <span class="skill-name">{{ item.name }}</span>
+                <span class="skill-value">{{ item.value }}%</span>
+              </div>
+              <div class="bar-container">
+                <div class="bar-fill" [style.width]="item.value + '%'"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Application Status Donut Chart -->
+        <div class="mat-mdc-card chart-card flex-1">
+          <div class="chart-header">
+            <h3>Application Funnel</h3>
+            <p>Percentage division of current applications</p>
+          </div>
+          <div class="donut-chart-container">
+            <div class="donut-svg-wrapper">
+              <svg viewBox="0 0 36 36" class="donut-chart">
+                <circle cx="18" cy="18" r="15.9155" fill="transparent" stroke="#1e293b" stroke-width="4.2" />
+                <circle *ngFor="let slice of donutSlices()"
+                        cx="18" cy="18" r="15.9155" fill="transparent" 
+                        [attr.stroke]="slice.color" 
+                        stroke-width="4.5"
+                        [attr.stroke-dasharray]="slice.dashArray" 
+                        [attr.stroke-dashoffset]="slice.dashOffset" 
+                        class="donut-segment" />
+              </svg>
+              <div class="donut-center-text">
+                <span class="num">{{ totalApps() }}</span>
+                <span class="lbl">Applications</span>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="legend-item" *ngFor="let slice of donutSlices()">
+                <span class="legend-dot" [style.background-color]="slice.color"></span>
+                <span class="legend-label">{{ slice.label | lowercase | titlecase }}</span>
+                <span class="legend-value">{{ slice.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

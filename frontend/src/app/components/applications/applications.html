@@ -1,0 +1,246 @@
+<div class="board-wrapper">
+  <!-- Header -->
+  <div class="board-header">
+    <h1>Application Tracker Pipeline</h1>
+    <p class="subtitle">
+      {{ authService.isRecruiter() ? 'Progress applicant review cards through pipeline stages.' : 'Monitor the review status of your active job applications.' }}
+    </p>
+  </div>
+
+  @if (isLoading()) {
+    <div class="board-skeleton">
+      <div class="skeleton-col" *ngFor="let col of [1,2,3,4,5]">
+        <div class="skeleton-loading title" style="width: 80%; height: 20px; margin-bottom: 20px;"></div>
+        <div class="skeleton-loading text" style="height: 120px; margin-bottom: 12px;" *ngFor="let x of [1,2]"></div>
+      </div>
+    </div>
+  } @else {
+    <!-- Main Kanban Board -->
+    <div class="kanban-board">
+      
+      <!-- Stage Column: Applied -->
+      <div class="kanban-column applied">
+        <div class="column-header">
+          <span class="label">Applied</span>
+          <span class="count-badge">{{ appliedLanes().applied.length }}</span>
+        </div>
+        <div class="cards-list">
+          @if (appliedLanes().applied.length === 0) {
+            <div class="empty-lane">Empty</div>
+          }
+          <div class="kanban-card mat-mdc-card clickable" 
+               *ngFor="let app of appliedLanes().applied"
+               (click)="authService.isRecruiter() ? openDrawer(app) : null">
+            <h4 class="card-title">{{ authService.isRecruiter() ? getUserObject(app.userId).name : getJobObject(app.jobId).title }}</h4>
+            <span class="card-subtitle">{{ authService.isRecruiter() ? getJobObject(app.jobId).title : getJobObject(app.jobId).company }}</span>
+            <div class="card-meta">
+              <span class="badge" [class.high]="app.matchPercentage >= 85" [class.medium]="app.matchPercentage >= 70 && app.matchPercentage < 85" [class.low]="app.matchPercentage < 70">
+                {{ app.matchPercentage }}% Match
+              </span>
+              <span class="date">{{ app.createdAt | date:'shortDate' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage Column: Reviewing -->
+      <div class="kanban-column reviewing">
+        <div class="column-header">
+          <span class="label">Reviewing</span>
+          <span class="count-badge">{{ appliedLanes().reviewing.length }}</span>
+        </div>
+        <div class="cards-list">
+          @if (appliedLanes().reviewing.length === 0) {
+            <div class="empty-lane">Empty</div>
+          }
+          <div class="kanban-card mat-mdc-card clickable" 
+               *ngFor="let app of appliedLanes().reviewing"
+               (click)="authService.isRecruiter() ? openDrawer(app) : null">
+            <h4 class="card-title">{{ authService.isRecruiter() ? getUserObject(app.userId).name : getJobObject(app.jobId).title }}</h4>
+            <span class="card-subtitle">{{ authService.isRecruiter() ? getJobObject(app.jobId).title : getJobObject(app.jobId).company }}</span>
+            <div class="card-meta">
+              <span class="badge" [class.high]="app.matchPercentage >= 85" [class.medium]="app.matchPercentage >= 70 && app.matchPercentage < 85" [class.low]="app.matchPercentage < 70">
+                {{ app.matchPercentage }}% Match
+              </span>
+              <span class="date">{{ app.createdAt | date:'shortDate' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage Column: Interview -->
+      <div class="kanban-column interview">
+        <div class="column-header">
+          <span class="label">Interview</span>
+          <span class="count-badge">{{ appliedLanes().interview.length }}</span>
+        </div>
+        <div class="cards-list">
+          @if (appliedLanes().interview.length === 0) {
+            <div class="empty-lane">Empty</div>
+          }
+          <div class="kanban-card mat-mdc-card clickable" 
+               *ngFor="let app of appliedLanes().interview"
+               (click)="authService.isRecruiter() ? openDrawer(app) : null">
+            <h4 class="card-title">{{ authService.isRecruiter() ? getUserObject(app.userId).name : getJobObject(app.jobId).title }}</h4>
+            <span class="card-subtitle">{{ authService.isRecruiter() ? getJobObject(app.jobId).title : getJobObject(app.jobId).company }}</span>
+            <div class="card-meta">
+              <span class="badge" [class.high]="app.matchPercentage >= 85" [class.medium]="app.matchPercentage >= 70 && app.matchPercentage < 85" [class.low]="app.matchPercentage < 70">
+                {{ app.matchPercentage }}% Match
+              </span>
+              <span class="date">{{ app.createdAt | date:'shortDate' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage Column: Selected -->
+      <div class="kanban-column selected">
+        <div class="column-header">
+          <span class="label">Selected</span>
+          <span class="count-badge">{{ appliedLanes().selected.length }}</span>
+        </div>
+        <div class="cards-list">
+          @if (appliedLanes().selected.length === 0) {
+            <div class="empty-lane">Empty</div>
+          }
+          <div class="kanban-card mat-mdc-card clickable" 
+               *ngFor="let app of appliedLanes().selected"
+               (click)="authService.isRecruiter() ? openDrawer(app) : null">
+            <h4 class="card-title">{{ authService.isRecruiter() ? getUserObject(app.userId).name : getJobObject(app.jobId).title }}</h4>
+            <span class="card-subtitle">{{ authService.isRecruiter() ? getJobObject(app.jobId).title : getJobObject(app.jobId).company }}</span>
+            <div class="card-meta">
+              <span class="badge" [class.high]="app.matchPercentage >= 85" [class.medium]="app.matchPercentage >= 70 && app.matchPercentage < 85" [class.low]="app.matchPercentage < 70">
+                {{ app.matchPercentage }}% Match
+              </span>
+              <span class="date">{{ app.createdAt | date:'shortDate' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage Column: Rejected -->
+      <div class="kanban-column rejected">
+        <div class="column-header">
+          <span class="label">Rejected</span>
+          <span class="count-badge">{{ appliedLanes().rejected.length }}</span>
+        </div>
+        <div class="cards-list">
+          @if (appliedLanes().rejected.length === 0) {
+            <div class="empty-lane">Empty</div>
+          }
+          <div class="kanban-card mat-mdc-card clickable" 
+               *ngFor="let app of appliedLanes().rejected"
+               (click)="authService.isRecruiter() ? openDrawer(app) : null">
+            <h4 class="card-title">{{ authService.isRecruiter() ? getUserObject(app.userId).name : getJobObject(app.jobId).title }}</h4>
+            <span class="card-subtitle">{{ authService.isRecruiter() ? getJobObject(app.jobId).title : getJobObject(app.jobId).company }}</span>
+            <div class="card-meta">
+              <span class="badge" [class.high]="app.matchPercentage >= 85" [class.medium]="app.matchPercentage >= 70 && app.matchPercentage < 85" [class.low]="app.matchPercentage < 70">
+                {{ app.matchPercentage }}% Match
+              </span>
+              <span class="date">{{ app.createdAt | date:'shortDate' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ==================== RECRUITER SLIDING PROFILE DETAIL DRAWER ==================== -->
+  <div class="profile-drawer-backdrop" [class.open]="isDrawerOpen()" (click)="closeDrawer()">
+    <div class="profile-drawer mat-elevation-z16" [class.open]="isDrawerOpen()" (click)="$event.stopPropagation()">
+      @if (selectedApp()) {
+        <!-- Drawer Header -->
+        <div class="drawer-header">
+          <div class="profile-summary">
+            <h2>{{ getUserObject(selectedApp()?.userId).name }}</h2>
+            <p>{{ getUserObject(selectedApp()?.userId).email }} • {{ getUserObject(selectedApp()?.userId).phone }}</p>
+            <p class="loc"><span class="material-icons-outlined">location_on</span> {{ getUserObject(selectedApp()?.userId).location || 'San Francisco, CA' }}</p>
+          </div>
+          <button (click)="closeDrawer()" class="drawer-close"><span class="material-icons-outlined">close</span></button>
+        </div>
+
+        <!-- Drawer Body Content -->
+        <div class="drawer-body">
+          
+          <!-- Quick Status Stage Manager -->
+          <div class="status-stage-manager">
+            <label>Progress Stage Status:</label>
+            <div class="buttons-stage">
+              <button (click)="moveStage(selectedApp()?._id!, 'Reviewing')" [class.active]="selectedApp()?.status === 'Reviewing'" class="stage-btn reviewing">Review</button>
+              <button (click)="moveStage(selectedApp()?._id!, 'Interview')" [class.active]="selectedApp()?.status === 'Interview'" class="stage-btn interview">Interview</button>
+              <button (click)="moveStage(selectedApp()?._id!, 'Selected')" [class.active]="selectedApp()?.status === 'Selected'" class="stage-btn selected">Hire</button>
+              <button (click)="moveStage(selectedApp()?._id!, 'Rejected')" [class.active]="selectedApp()?.status === 'Rejected'" class="stage-btn rejected">Reject</button>
+            </div>
+          </div>
+
+          <!-- Matching Card Info -->
+          <div class="drawer-match-card">
+            <div class="left">
+              <span class="score">{{ selectedApp()?.matchPercentage }}%</span>
+              <span class="lbl">AI Compatibility Score</span>
+            </div>
+            <div class="right">
+              <h4>Applied Position:</h4>
+              <p>{{ getJobObject(selectedApp()?.jobId).title }}</p>
+              <span>{{ getJobObject(selectedApp()?.jobId).company }} • {{ getJobObject(selectedApp()?.jobId).location }}</span>
+            </div>
+          </div>
+
+          <!-- AI Summary Details -->
+          @if (selectedApp()?.resumeId) {
+            <div class="detail-section">
+              <h3>Candidate AI Professional Summary</h3>
+              <p class="summary-p">"{{ ($any(selectedApp()?.resumeId)?.aiSummary) || 'No parsed summary statement available.' }}"</p>
+            </div>
+
+            <!-- Skills -->
+            <div class="detail-section">
+              <h3>Skills Profile</h3>
+              <div class="skills-categorized-chips" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                @if ($any(selectedApp()?.resumeId)?.analysis?.strongSkills?.length) {
+                  <div>
+                    <span class="lbl-cat" style="color: var(--success); font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Strong Alignment:</span>
+                    <div class="chips" style="margin-top: 6px;">
+                      <span class="chip" *ngFor="let s of $any(selectedApp()?.resumeId)?.analysis?.strongSkills">{{ s }}</span>
+                    </div>
+                  </div>
+                }
+                @if ($any(selectedApp()?.resumeId)?.analysis?.weakSkills?.length) {
+                  <div>
+                    <span class="lbl-cat" style="color: var(--warning); font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Weak Alignment:</span>
+                    <div class="chips" style="margin-top: 6px;">
+                      <span class="chip" *ngFor="let s of $any(selectedApp()?.resumeId)?.analysis?.weakSkills">{{ s }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Resume experience details mapping -->
+            @if ($any(selectedApp()?.resumeId)?.experience?.length) {
+              <div class="detail-section">
+                <h3>Work Experience History</h3>
+                <div class="drawer-history-list">
+                  <div class="item" *ngFor="let exp of $any(selectedApp()?.resumeId)?.experience">
+                    <h4>{{ exp.title }}</h4>
+                    <span>{{ exp.company }}</span>
+                    <p>{{ exp.description }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Custom Cover Letter attached -->
+          @if (selectedApp()?.coverLetter) {
+            <div class="detail-section">
+              <h3>Submitted Cover Letter</h3>
+              <p class="cover-letter-p" style="white-space: pre-line;">{{ selectedApp()?.coverLetter }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

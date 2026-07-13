@@ -1,0 +1,386 @@
+<div class="resume-wrapper">
+  <!-- 1. LOADING OVERLAYS -->
+  @if (isLoading()) {
+    <div class="skeleton-layout">
+      <div class="skeleton-loading title" style="width: 300px;"></div>
+      <div class="skeleton-loading text" style="height: 150px; margin-bottom: 24px;"></div>
+      <div class="skeleton-loading text" *ngFor="let x of [1,2,3]"></div>
+    </div>
+  } @else if (isUploading()) {
+    <div class="upload-loader-overlay">
+      <div class="loader-content">
+        <span class="spinner-large"></span>
+        <h3>Analyzing Resume & Calculating ATS Score...</h3>
+        <p>Our AI is parsing your experience, extracting keywords, and finding grammar issues. This will take a moment.</p>
+      </div>
+    </div>
+  } @else {
+    <!-- 2. UPLOAD DRAG-DROP STATE (IF NO RESUME LOADED) -->
+    @if (!resume()) {
+      <div class="upload-section">
+        <div class="upload-header">
+          <h1>Upload Your Resume</h1>
+          <p>Get instant AI-driven reviews, ATS keyword analysis, cover letters, and interview coaching.</p>
+        </div>
+
+        <div class="drag-drop-zone"
+             (dragover)="onDragOver($event)"
+             (drop)="onDrop($event)"
+             (click)="fileInput.click()">
+          <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept=".pdf,.docx" />
+          <span class="material-icons-outlined upload-icon text-glow">cloud_upload</span>
+          <h3>Drag and drop your resume here</h3>
+          <p>Supports PDF and Word Documents (.docx) up to 10MB</p>
+          <button class="btn-primary" style="pointer-events: none;">Select File</button>
+        </div>
+      </div>
+    } @else {
+      <!-- 3. DETAILED AI ANALYSIS VIEWS (IF RESUME LOADED) -->
+      <div class="analysis-section">
+        <!-- Resume File Header Info -->
+        <div class="resume-header mat-mdc-card">
+          <div class="info">
+            <span class="material-icons-outlined file-icon">description</span>
+            <div>
+              <h2>{{ resume()?.uploadedFile?.originalName }}</h2>
+              <p>Uploaded on {{ resume()?.createdAt | date:'mediumDate' }} • {{ (resume()?.uploadedFile?.size || 0) / 1024 / 1024 | number:'1.1-2' }} MB</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="btn-secondary" (click)="fileInput.click()">
+              <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept=".pdf,.docx" />
+              <span class="material-icons-outlined">refresh</span>
+              <span>Re-upload</span>
+            </button>
+            <button class="btn-secondary delete-btn" (click)="deleteResume()">
+              <span class="material-icons-outlined">delete</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabbed Navigation -->
+        <nav class="analysis-tabs">
+          <button [class.active]="activeTab() === 'ats'" (click)="setTab('ats')">
+            <span class="material-icons-outlined">analytics</span>
+            <span>ATS Review</span>
+          </button>
+          <button [class.active]="activeTab() === 'suggestions'" (click)="setTab('suggestions')">
+            <span class="material-icons-outlined">auto_awesome</span>
+            <span>AI Suggestions</span>
+          </button>
+          <button [class.active]="activeTab() === 'cv_enhancer'" (click)="setTab('cv_enhancer')">
+            <span class="material-icons-outlined">workspace_premium</span>
+            <span>CV Enhancer</span>
+          </button>
+          <button [class.active]="activeTab() === 'interview'" (click)="setTab('interview')">
+            <span class="material-icons-outlined">question_answer</span>
+            <span>Interview Prep</span>
+          </button>
+          <button [class.active]="activeTab() === 'profile'" (click)="setTab('profile')">
+            <span class="material-icons-outlined">edit</span>
+            <span>Modify Profile</span>
+          </button>
+        </nav>
+
+        <!-- TAB PANEL WORKSPACE -->
+        <div class="tab-panel-content">
+          
+          <!-- A. ATS SCORE & KEYWORDS TAB -->
+          @if (activeTab() === 'ats') {
+            <div class="tab-grid animate-fade">
+              <!-- ATS Score Card -->
+              <div class="mat-mdc-card ats-detail-card glow-primary">
+                <h3>ATS Score Evaluation</h3>
+                <div class="ats-circle-score">
+                  <div class="score-num">{{ resume()?.atsScore }}</div>
+                  <div class="score-total">/ 100</div>
+                </div>
+                <div class="ats-feedback-bar">
+                  <div class="progress" [style.width]="resume()?.atsScore + '%'"></div>
+                </div>
+                <p class="feedback-text">
+                  @if ((resume()?.atsScore || 0) >= 85) {
+                    Excellent! Your resume has high alignment with target keywords and standard layouts.
+                  } @else if ((resume()?.atsScore || 0) >= 70) {
+                    Good start! Adding key certifications or fixing formatting issues will boost your score further.
+                  } @else {
+                    Needs optimization. Your CV is missing critical keywords. Follow the Suggestions tab to optimize.
+                  }
+                </p>
+              </div>
+
+              <!-- AI Professional Summary -->
+              <div class="mat-mdc-card summary-card">
+                <h3>AI Resume Summary</h3>
+                <p class="summary-text">"{{ resume()?.aiSummary }}"</p>
+              </div>
+
+              <!-- Skills categorizations -->
+              <div class="mat-mdc-card full-col skills-analysis-card">
+                <h3>Skills Analysis Breakdown</h3>
+                <div class="skills-categorized-grid">
+                  <div class="group-column strong">
+                    <h4>Strong Alignment</h4>
+                    <div class="chips">
+                      <span class="chip" *ngFor="let s of resume()?.analysis?.strongSkills">{{ s }}</span>
+                    </div>
+                  </div>
+                  <div class="group-column weak">
+                    <h4>Weak Alignment</h4>
+                    <div class="chips">
+                      <span class="chip" *ngFor="let s of resume()?.analysis?.weakSkills">{{ s }}</span>
+                    </div>
+                  </div>
+                  <div class="group-column missing">
+                    <h4>Missing Keywords</h4>
+                    <div class="chips">
+                      <span class="chip" *ngFor="let s of resume()?.analysis?.missingSkills">{{ s }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Grammar & Spelling Analysis -->
+              <div class="mat-mdc-card full-col grammar-card">
+                <h3>Grammar & Spelling Review</h3>
+                @if ((resume()?.analysis?.grammarCheck?.length || 0) === 0) {
+                  <div class="clean-state">
+                    <span class="material-icons-outlined success-text">check_circle_outline</span>
+                    <p>No grammar mistakes found. Excellent writing structure!</p>
+                  </div>
+                } @else {
+                  <div class="grammar-list">
+                    <div class="grammar-item" *ngFor="let item of resume()?.analysis?.grammarCheck">
+                      <div class="mistake-header">
+                        <span class="label">Detected Mistake:</span>
+                        <p class="mistake-text">"{{ item.mistake }}"</p>
+                      </div>
+                      <div class="correction-row">
+                        <span class="material-icons-outlined success-text">arrow_forward</span>
+                        <span class="label">Suggested Correction:</span>
+                        <p class="correction-text">"{{ item.correction }}"</p>
+                      </div>
+                      <p class="explanation">{{ item.explanation }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- B. AI SUGGESTIONS TAB -->
+          @if (activeTab() === 'suggestions') {
+            <div class="tab-grid animate-fade">
+              <!-- Header suggestions -->
+              <div class="mat-mdc-card">
+                <h3>Recommended Headline Title</h3>
+                <h4 class="primary-text" style="margin: 0; font-size: 1.3rem;">{{ resume()?.analysis?.suggestions?.resumeTitle }}</h4>
+              </div>
+
+              <div class="mat-mdc-card">
+                <h3>Improved Summary Statement</h3>
+                <p class="text-secondary" style="margin: 0; font-size: 0.95rem; line-height: 1.5;">"{{ resume()?.analysis?.suggestions?.summary }}"</p>
+              </div>
+
+              <!-- Keywords, Projects, Achievements -->
+              <div class="mat-mdc-card full-col suggestion-lists-card">
+                <h3>Target Optimization Checklist</h3>
+                <div class="checklist-grid">
+                  <div class="checklist-item">
+                    <h4><span class="material-icons-outlined warning-text">label_important</span> Missing Keywords</h4>
+                    <ul>
+                      <li *ngFor="let s of resume()?.analysis?.suggestions?.missingKeywords">{{ s }}</li>
+                    </ul>
+                  </div>
+                  <div class="checklist-item">
+                    <h4><span class="material-icons-outlined primary-text">insights</span> Project Additions</h4>
+                    <ul>
+                      <li *ngFor="let p of resume()?.analysis?.suggestions?.missingProjects">{{ p }}</li>
+                    </ul>
+                  </div>
+                  <div class="checklist-item">
+                    <h4><span class="material-icons-outlined success-text">military_tech</span> Achievement Metrics</h4>
+                    <ul>
+                      <li *ngFor="let a of resume()?.analysis?.suggestions?.missingAchievements">{{ a }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Improved Bullet Points -->
+              <div class="mat-mdc-card full-col bullet-points-card">
+                <h3>ATS Bullet Points Optimization</h3>
+                <div class="bullet-list">
+                  <div class="bullet-item" *ngFor="let bullet of resume()?.analysis?.suggestions?.improvedBulletPoints">
+                    <div class="before-box">
+                      <span class="badge red">Original</span>
+                      <p>"{{ bullet.original }}"</p>
+                    </div>
+                    <div class="after-box">
+                      <span class="badge green">Optimized</span>
+                      <p>"{{ bullet.improved }}"</p>
+                    </div>
+                    <p class="reason"><span class="material-icons-outlined">lightbulb</span> {{ bullet.reason }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- C. CV ENHANCER TAB -->
+          @if (activeTab() === 'cv_enhancer') {
+            <div class="tab-grid animate-fade">
+              <!-- Headlines & Bios -->
+              <div class="mat-mdc-card flex-1">
+                <h3>LinkedIn Headline Profile</h3>
+                <div class="copy-box">
+                  <p id="linkedInHeadlineText">{{ resume()?.analysis?.linkedInHeadline }}</p>
+                </div>
+              </div>
+
+              <div class="mat-mdc-card flex-1">
+                <h3>Resume Header Headline</h3>
+                <div class="copy-box">
+                  <p id="resumeHeadlineText">{{ resume()?.analysis?.resumeHeadline }}</p>
+                </div>
+              </div>
+
+              <div class="mat-mdc-card full-col">
+                <h3>Professional Bio (for portfolios/about page)</h3>
+                <div class="copy-box large-box">
+                  <p id="professionalBioText">{{ resume()?.analysis?.professionalBio }}</p>
+                </div>
+              </div>
+
+              <!-- Generated Cover Letter -->
+              <div class="mat-mdc-card full-col cover-letter-card">
+                <div class="card-header-btn">
+                  <h3>AI Generated Cover Letter</h3>
+                </div>
+                <div class="copy-box large-box">
+                  <p id="coverLetterText" style="white-space: pre-line;">{{ resume()?.analysis?.coverLetter }}</p>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- D. INTERVIEW PREP TAB -->
+          @if (activeTab() === 'interview') {
+            <div class="tab-grid animate-fade full-col">
+              <div class="mat-mdc-card interview-prep-card">
+                <div class="card-header">
+                  <h3>Custom Practice Interview Questions</h3>
+                  <p>AI generated questions based on your resume experience mapping and skills profile</p>
+                </div>
+
+                <div class="questions-list">
+                  <div class="question-item" *ngFor="let item of resume()?.analysis?.interviewQuestions; let i = index">
+                    <div class="q-header">
+                      <span class="num">Q{{ i + 1 }}</span>
+                      <h4>{{ item.question }}</h4>
+                    </div>
+                    <div class="q-answer">
+                      <h5>Recommended Answer Strategy:</h5>
+                      <p>{{ item.answerOutline }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommended Learning Resources -->
+              <div class="mat-mdc-card learning-resources-card">
+                <h3>Recommended Learning Resources</h3>
+                <p class="text-muted" style="margin-bottom: 20px;">Take these learning modules to cover your identified missing skills</p>
+                <div class="resources-grid">
+                  <div class="resource-item mat-mdc-card clickable" *ngFor="let item of resume()?.analysis?.learningResources">
+                    <div class="icon-header">
+                      <span class="material-icons-outlined accent-text">menu_book</span>
+                      <h4>{{ item.skill }}</h4>
+                    </div>
+                    <p>{{ item.resourceName }}</p>
+                    <a [href]="item.url" target="_blank" class="primary-text link-btn">
+                      <span>Search Resource</span>
+                      <span class="material-icons-outlined">open_in_new</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- E. PROFILE MODIFY TAB -->
+          @if (activeTab() === 'profile') {
+            <div class="tab-grid animate-fade">
+              <!-- Manual modifications forms -->
+              <div class="mat-mdc-card full-col form-card">
+                <div class="form-header">
+                  <h3>Modify Profile Details</h3>
+                  <p>Update skills, languages, and summary to recalibrate your ATS matches</p>
+                </div>
+
+                <form [formGroup]="profileForm" (ngSubmit)="saveProfileChanges()" class="profile-editor-form">
+                  <!-- Skills -->
+                  <div class="custom-input-group">
+                    <label for="skills">Skills (comma separated)</label>
+                    <input type="text" id="skills" formControlName="skills" placeholder="JavaScript, Node.js, Angular" />
+                  </div>
+
+                  <!-- Languages -->
+                  <div class="custom-input-group">
+                    <label for="languages">Languages (comma separated)</label>
+                    <input type="text" id="languages" formControlName="languages" placeholder="English, French" />
+                  </div>
+
+                  <!-- AI Professional Summary -->
+                  <div class="custom-input-group">
+                    <div class="label-action-row">
+                      <label for="aiSummary">Professional Summary Statement</label>
+                      <button type="button" (click)="improveSummaryAI()" class="btn-ai-enhance" [disabled]="isImprovingSummary()">
+                        <span class="material-icons-outlined">auto_awesome</span>
+                        <span>{{ isImprovingSummary() ? 'Optimizing...' : 'Optimize summary with AI' }}</span>
+                      </button>
+                    </div>
+                    <textarea id="aiSummary" formControlName="aiSummary" rows="5" placeholder="Write summary here..."></textarea>
+                  </div>
+
+                  <!-- Submit button -->
+                  <div class="form-actions">
+                    <button type="submit" class="btn-primary" [disabled]="isLoading()">Save Profile Changes</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Experience summary details list -->
+              <div class="mat-mdc-card flex-1">
+                <h3>Parsed Professional History</h3>
+                <div class="parsed-history-list">
+                  <div class="history-item" *ngFor="let exp of resume()?.experience">
+                    <div class="header">
+                      <h4>{{ exp.title }}</h4>
+                      <span>{{ exp.company }}</span>
+                    </div>
+                    <p>{{ exp.description }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Education summary details list -->
+              <div class="mat-mdc-card flex-1">
+                <h3>Parsed Academic History</h3>
+                <div class="parsed-history-list">
+                  <div class="history-item" *ngFor="let edu of resume()?.education">
+                    <div class="header">
+                      <h4>{{ edu.degree }} in {{ edu.fieldOfStudy }}</h4>
+                      <span>{{ edu.school }}</span>
+                    </div>
+                    <p>{{ edu.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

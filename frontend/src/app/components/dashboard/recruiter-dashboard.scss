@@ -1,0 +1,256 @@
+.dashboard-wrapper {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.welcome-header {
+  margin-bottom: 32px;
+}
+
+.header-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+
+  h1 { margin: 0 0 8px 0; font-size: 2.25rem; font-weight: 800; letter-spacing: -0.5px; }
+  .subtitle { margin: 0; color: var(--text-secondary); font-size: 1.1rem; }
+}
+
+// Pipeline Funnel Styling
+.funnel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-grow: 1;
+}
+
+.funnel-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .funnel-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    .funnel-name { color: var(--text-primary); }
+    .funnel-count { color: var(--text-secondary); font-size: 0.8rem; }
+  }
+
+  .funnel-progress {
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    overflow: hidden;
+
+    .funnel-progress-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+}
+
+// Active Job postings list items
+.job-list-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  flex-grow: 1;
+
+  .activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background-color: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--border-glow);
+      transform: translateX(4px);
+    }
+
+    .job-info {
+      h4 { margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+      span { font-size: 0.8rem; color: var(--text-secondary); }
+    }
+
+    .activity-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      span { font-size: 1.1rem; }
+
+      &.active {
+        background-color: var(--primary-glow);
+        color: var(--primary);
+      }
+    }
+  }
+}
+
+// Table Card Panel Styling
+.table-card-panel {
+  padding: 32px !important;
+  margin-top: 32px;
+
+  .panel-header {
+    margin-bottom: 24px;
+    h3 { margin: 0 0 4px 0; font-size: 1.25rem; font-weight: 800; }
+    p { margin: 0; color: var(--text-muted); font-size: 0.875rem; }
+  }
+}
+
+.table-empty-state {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-muted);
+
+  span { font-size: 3.5rem; margin-bottom: 12px; }
+  h4 { margin: 0 0 6px 0; font-size: 1.1rem; color: var(--text-primary); }
+  p { margin: 0; font-size: 0.9rem; }
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+// High-fidelity Applicants Table
+.applicants-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  th {
+    padding: 16px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  td {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    vertical-align: middle;
+  }
+
+  tr:hover td {
+    background-color: rgba(255, 255, 255, 0.01);
+  }
+}
+
+.candidate-details, .position-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .name, .title {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .email, .company {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+}
+
+// Color badges for AI Matching scores
+.match-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+
+  span:first-child { font-size: 1rem; }
+
+  &.high {
+    background-color: var(--success-glow);
+    color: var(--success);
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  &.medium {
+    background-color: var(--warning-glow);
+    color: var(--warning);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  &.low {
+    background-color: rgba(100, 116, 139, 0.08);
+    color: var(--text-secondary);
+    border-color: var(--border);
+  }
+}
+
+// Custom dropdown stylings for application stages
+.status-dropdown {
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: var(--primary);
+  }
+
+  &.applied { border-color: var(--primary); color: var(--primary); }
+  &.reviewing { border-color: var(--accent); color: var(--accent); }
+  &.interview { border-color: var(--warning); color: var(--warning); }
+  &.selected { border-color: var(--success); color: var(--success); }
+  &.rejected { border-color: var(--danger); color: var(--danger); }
+}
+
+.btn-table-icon {
+  background-color: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--primary);
+  }
+}
+
+@media (max-width: 992px) {
+  .header-action-row {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    button { width: 100%; justify-content: center; margin-top: 16px; }
+  }
+}

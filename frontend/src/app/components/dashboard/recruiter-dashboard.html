@@ -1,0 +1,205 @@
+<div class="dashboard-wrapper">
+  <!-- Loading skeleton -->
+  @if (isLoading()) {
+    <div class="welcome-header-skeleton">
+      <div class="skeleton-loading title"></div>
+      <div class="skeleton-loading text" style="width: 40%;"></div>
+    </div>
+    
+    <div class="dashboard-grid">
+      <div class="mat-mdc-card" style="padding: 24px; height: 120px;" *ngFor="let x of [1,2,3,4]">
+        <div class="skeleton-loading short" style="margin-bottom: 16px;"></div>
+        <div class="skeleton-loading title" style="width: 80%;"></div>
+      </div>
+    </div>
+  } @else {
+    <!-- Main Dashboard View -->
+    <div class="welcome-header">
+      <div class="header-action-row">
+        <div>
+          <h1>Recruiter Command Center</h1>
+          <p class="subtitle">Analyze candidate fits, ATS scores, and manage your interview pipeline.</p>
+        </div>
+        <button routerLink="/recruiter/jobs" class="btn-primary">
+          <span class="material-icons-outlined">add</span>
+          <span>Post a New Job</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="dashboard-grid">
+      <div class="mat-mdc-card stat-card">
+        <div class="stat-header">
+          <span>Active Postings</span>
+          <span class="material-icons-outlined icon primary-text">business_center</span>
+        </div>
+        <div class="stat-body">
+          <h2 class="counter">{{ totalJobs() }}</h2>
+          <span class="trend"><span class="material-icons-outlined">list</span> Job listings</span>
+        </div>
+      </div>
+
+      <div class="mat-mdc-card stat-card">
+        <div class="stat-header">
+          <span>Unique Candidates</span>
+          <span class="material-icons-outlined icon accent-text">people_alt</span>
+        </div>
+        <div class="stat-body">
+          <h2 class="counter">{{ totalCandidates() }}</h2>
+          <span class="trend"><span class="material-icons-outlined">person_pin</span> CV Database</span>
+        </div>
+      </div>
+
+      <div class="mat-mdc-card stat-card">
+        <div class="stat-header">
+          <span>Applications Received</span>
+          <span class="material-icons-outlined icon warning-text">assignment</span>
+        </div>
+        <div class="stat-body">
+          <h2 class="counter">{{ totalApplications() }}</h2>
+          <span class="trend positive"><span class="material-icons-outlined">trending_up</span> Across all jobs</span>
+        </div>
+      </div>
+
+      <div class="mat-mdc-card stat-card">
+        <div class="stat-header">
+          <span>Hiring Successes</span>
+          <span class="material-icons-outlined icon success-text">workspace_premium</span>
+        </div>
+        <div class="stat-body">
+          <h2 class="counter">{{ selectionCount() }}</h2>
+          <span class="trend"><span class="material-icons-outlined">check_circle</span> Placements</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Funnel and Chart Row -->
+    <div class="charts-row">
+      <!-- Hiring Funnel -->
+      <div class="mat-mdc-card chart-card flex-1">
+        <div class="chart-header">
+          <h3>Hiring Pipeline</h3>
+          <p>Progression of candidates through conversion stages</p>
+        </div>
+        <div class="funnel-container">
+          <div class="funnel-bar-item" *ngFor="let step of funnelSteps()">
+            <div class="funnel-labels">
+              <span class="funnel-name">{{ step.name }}</span>
+              <span class="funnel-count">{{ step.count }} candidates</span>
+            </div>
+            <div class="funnel-progress">
+              <div class="funnel-progress-fill" [style.width]="step.percent + '%'" [style.background-color]="step.color"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applicant Job distribution -->
+      <div class="mat-mdc-card chart-card flex-1">
+        <div class="chart-header">
+          <h3>Top Postings Activity</h3>
+          <p>Number of applicants per active job listing</p>
+        </div>
+        <div class="job-list-activity">
+          @if (jobChartData().length === 0) {
+            <p class="text-muted">No active listings activity found</p>
+          } @else {
+            <div class="activity-item" *ngFor="let item of jobChartData()">
+              <div class="job-info">
+                <h4>{{ item.title }}</h4>
+                <span>{{ item.count }} applicants</span>
+              </div>
+              <div class="activity-badge" [class.active]="item.count > 0">
+                <span class="material-icons-outlined">trending_up</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Candidates Table Panel -->
+    <div class="mat-mdc-card table-card-panel">
+      <div class="panel-header">
+        <h3>Active Applicants</h3>
+        <p>Review matching percentages and move candidates to the next stage.</p>
+      </div>
+
+      @if (applications().length === 0) {
+        <div class="table-empty-state">
+          <span class="material-icons-outlined">people_outline</span>
+          <h4>No applications received yet</h4>
+          <p>Postings will appear on the public job board for candidates to apply.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="applicants-table">
+            <thead>
+              <tr>
+                <th>Candidate</th>
+                <th>Applied Position</th>
+                <th>AI Match %</th>
+                <th>Status Stage</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let app of applications()">
+                <!-- Candidate details -->
+                <td>
+                  <div class="candidate-details">
+                    <span class="name">{{ getUserObject(app.userId).name }}</span>
+                    <span class="email">{{ getUserObject(app.userId).email }}</span>
+                  </div>
+                </td>
+                
+                <!-- Position details -->
+                <td>
+                  <div class="position-details">
+                    <span class="title">{{ getJobObject(app.jobId).title }}</span>
+                    <span class="company">{{ getJobObject(app.jobId).company }}</span>
+                  </div>
+                </td>
+
+                <!-- Match Score -->
+                <td>
+                  <div class="match-score-badge" 
+                       [class.high]="app.matchPercentage >= 85"
+                       [class.medium]="app.matchPercentage >= 70 && app.matchPercentage < 85"
+                       [class.low]="app.matchPercentage < 70">
+                    <span class="material-icons-outlined">analytics</span>
+                    <span>{{ app.matchPercentage }}% Match</span>
+                  </div>
+                </td>
+
+                <!-- Status state dropdown picker -->
+                <td>
+                  <select [value]="app.status" 
+                          (change)="updateStatus(app._id!, $any($event.target).value)"
+                          class="status-dropdown"
+                          [ngClass]="app.status.toLowerCase()">
+                    <option value="Applied">Applied</option>
+                    <option value="Reviewing">Reviewing</option>
+                    <option value="Interview">Interview</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Selected">Selected</option>
+                  </select>
+                </td>
+
+                <!-- Actions -->
+                <td>
+                  <div class="action-buttons-group">
+                    <button class="btn-table-icon" [routerLink]="['/recruiter/applications']" title="View profile detail">
+                      <span class="material-icons-outlined">visibility</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

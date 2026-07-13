@@ -1,0 +1,108 @@
+<div class="auth-container">
+  <div class="background-decor">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <mat-card class="auth-card">
+    <div class="auth-header">
+      <div class="logo">
+        <span class="material-icons-outlined text-glow">psychology</span>
+        <h2>ResuMatch AI</h2>
+      </div>
+      <p class="subtitle">{{ isLoginMode() ? 'Sign in to your dashboard' : 'Create an account to begin' }}</p>
+    </div>
+
+    <form [formGroup]="authForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Name (Register Mode only) -->
+      @if (!isLoginMode()) {
+        <div class="custom-input-group">
+          <label for="name">Full Name</label>
+          <input 
+            type="text" 
+            id="name" 
+            formControlName="name" 
+            placeholder="John Doe"
+            [class.error]="authForm.get('name')?.touched && authForm.get('name')?.invalid"
+          />
+          @if (authForm.get('name')?.touched && authForm.get('name')?.invalid) {
+            <span class="error-msg">Name is required</span>
+          }
+        </div>
+      }
+
+      <!-- Email -->
+      <div class="custom-input-group">
+        <label for="email">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          formControlName="email" 
+          placeholder="example@resumatch.ai"
+          [class.error]="authForm.get('email')?.touched && authForm.get('email')?.invalid"
+        />
+        @if (authForm.get('email')?.touched && authForm.get('email')?.invalid) {
+          <span class="error-msg">Please enter a valid email address</span>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="custom-input-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          formControlName="password" 
+          placeholder="••••••••"
+          [class.error]="authForm.get('password')?.touched && authForm.get('password')?.invalid"
+        />
+        @if (authForm.get('password')?.touched && authForm.get('password')?.invalid) {
+          <span class="error-msg">Password must be at least 6 characters long</span>
+        }
+      </div>
+
+      <!-- User Role (Register Mode only) -->
+      @if (!isLoginMode()) {
+        <div class="custom-input-group">
+          <label>I want to</label>
+          <div class="role-selector">
+            <label class="role-option" [class.selected]="authForm.get('role')?.value === 'candidate'">
+              <input type="radio" value="candidate" formControlName="role" />
+              <div class="role-content">
+                <span class="material-icons-outlined">work_outline</span>
+                <span>Find a Job</span>
+              </div>
+            </label>
+            <label class="role-option" [class.selected]="authForm.get('role')?.value === 'recruiter'">
+              <input type="radio" value="recruiter" formControlName="role" />
+              <div class="role-content">
+                <span class="material-icons-outlined">business</span>
+                <span>Hire Talent</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      }
+
+      <!-- Submit Action -->
+      <button type="submit" class="btn-primary w-full" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          <span>Processing...</span>
+        } @else {
+          <span>{{ isLoginMode() ? 'Sign In' : 'Create Account' }}</span>
+          <span class="material-icons-outlined">arrow_forward</span>
+        }
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>
+        {{ isLoginMode() ? "Don't have an account?" : "Already have an account?" }}
+        <a [routerLink]="isLoginMode() ? '/register' : '/login'">
+          {{ isLoginMode() ? 'Sign up' : 'Sign in' }}
+        </a>
+      </p>
+    </div>
+  </mat-card>
+</div>

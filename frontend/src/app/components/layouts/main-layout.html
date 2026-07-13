@@ -1,0 +1,140 @@
+<div class="layout-wrapper" (click)="closeNotificationDropdown()">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar glass-sidebar" [class.collapsed]="!isSidebarExpanded()">
+    <div class="sidebar-header">
+      <span class="material-icons-outlined brand-icon">psychology</span>
+      <span class="brand-name">ResuMatch AI</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- Candidate Links -->
+      @if (authService.isCandidate()) {
+        <a routerLink="/candidate/dashboard" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">dashboard</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a routerLink="/candidate/resume" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">description</span>
+          <span class="nav-text">My Resume</span>
+        </a>
+        <a routerLink="/candidate/jobs" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">work_outline</span>
+          <span class="nav-text">Job Board</span>
+        </a>
+        <a routerLink="/candidate/applications" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">assignment_turned_in</span>
+          <span class="nav-text">Applications</span>
+        </a>
+      }
+
+      <!-- Recruiter Links -->
+      @if (authService.isRecruiter()) {
+        <a routerLink="/recruiter/dashboard" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">dashboard</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a routerLink="/recruiter/jobs" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">business_center</span>
+          <span class="nav-text">Manage Jobs</span>
+        </a>
+        <a routerLink="/recruiter/applications" routerLinkActive="active" class="nav-item">
+          <span class="material-icons-outlined">people_outline</span>
+          <span class="nav-text">Applicants</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="nav-item logout-btn" (click)="onLogout()">
+        <span class="material-icons-outlined">logout</span>
+        <span class="nav-text">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Workspace Area -->
+  <div class="main-container">
+    <!-- Header -->
+    <header class="main-header">
+      <button class="icon-btn sidebar-toggle" (click)="toggleSidebar(); $event.stopPropagation()">
+        <span class="material-icons-outlined">menu</span>
+      </button>
+
+      <div class="header-right">
+        <!-- Notification Bell Dropdown -->
+        <div class="notification-wrapper">
+          <button class="icon-btn bell-btn" (click)="toggleNotificationDropdown($event)">
+            <span class="material-icons-outlined">notifications</span>
+            @if (notificationService.unreadCount() > 0) {
+              <span class="badge">{{ notificationService.unreadCount() }}</span>
+            }
+          </button>
+
+          <!-- Dropdown Panel -->
+          @if (isNotificationDropdownOpen()) {
+            <div class="notification-dropdown mat-elevation-z4" (click)="$event.stopPropagation()">
+              <div class="dropdown-header">
+                <h3>Notifications</h3>
+                @if (notificationService.unreadCount() > 0) {
+                  <button (click)="markAllAsRead($event)">Mark all read</button>
+                }
+              </div>
+              <div class="dropdown-list">
+                @if (notificationService.notifications().length === 0) {
+                  <div class="empty-state">
+                    <span class="material-icons-outlined">notifications_off</span>
+                    <p>No notifications yet</p>
+                  </div>
+                }
+                
+                @for (notif of notificationService.notifications(); track notif._id) {
+                  <div class="notification-item" [class.unread]="!notif.isRead">
+                    <div class="notif-icon" [ngClass]="notif.type.toLowerCase()">
+                      <span class="material-icons-outlined">
+                        @switch (notif.type) {
+                          @case ('RESUME_UPLOADED') { description }
+                          @case ('ATS_IMPROVED') { auto_awesome }
+                          @case ('APPLICATION_SUBMITTED') { send }
+                          @case ('INTERVIEW_SCHEDULED') { event }
+                          @default { notifications }
+                        }
+                      </span>
+                    </div>
+                    <div class="notif-content">
+                      <div class="notif-title-row">
+                        <h4>{{ notif.title }}</h4>
+                        @if (!notif.isRead) {
+                          <button class="mark-read-btn" (click)="markAsRead(notif._id!, $event)">
+                            <span class="material-icons-outlined">done</span>
+                          </button>
+                        }
+                      </div>
+                      <p>{{ notif.message }}</p>
+                      <span class="notif-time">{{ notif.createdAt | date:'shortTime' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- User Profile Card -->
+        <div class="user-profile-badge">
+          <div class="avatar">
+            {{ authService.currentUser()?.name?.charAt(0) }}
+          </div>
+          <div class="profile-info">
+            <span class="profile-name">{{ authService.currentUser()?.name }}</span>
+            <span class="profile-role">{{ authService.currentUser()?.role | titlecase }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content View -->
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
